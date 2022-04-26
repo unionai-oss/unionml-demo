@@ -4,5 +4,5 @@
 python -m venv ~/venvs/ulearn-demo
 source ~/venvs/ulearn-demo/bin/activate
 pip install git+https://github.com/unionai-oss/ulearn@main
-pip install torch tqdm transformers
+pip install gradio torch tqdm transformers
 ```

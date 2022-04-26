@@ -1,22 +1,30 @@
-from collections import defaultdict
+import os
+
 from datetime import datetime
 from typing import List, Optional, Tuple, Union
 
-import pandas as pd
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 
 from transformers import TrainingArguments, EvalPrediction
     
 from ulearn import Dataset, Model
 
-from .dataset import quickdraw_collate_fn, QuickDrawDataset
-from .trainer import init_model, quickdraw_compute_metrics, QuickDrawTrainer
+from .dataset import QuickDrawDataset, get_quickdraw_class_names, quickdraw_collate_fn
+from .trainer import QuickDrawTrainer, init_model, quickdraw_compute_metrics
 
 
-dataset = Dataset(name="digits_dataset", test_size=0.2, shuffle=True, targets=["target"])
-model = Model(name="digits_classifier", init=init_model, dataset=dataset)
+dataset = Dataset(name="quickdraw_dataset", test_size=0.2, shuffle=True)
+model = Model(name="quickdraw_classifier", init=init_model, dataset=dataset)
+
+# attach Flyte remote backend
+model.remote(
+    registry="ghcr.io/unionai-oss",
+    dockerfile="Dockerfile",
+    config_file_path="config/config-remote.yaml",
+    project="ulearn",
+    domain="development",
+)
 
 
 @dataset.reader
@@ -116,6 +124,8 @@ def evaluator(module: nn.Module, dataset: torch.utils.data.Subset) -> float:
 
 
 if __name__ == "__main__":
+    import gradio as gr
+
     num_classes = 3
     trained_model, metrics = model.train(
         hyperparameters={"num_classes": num_classes},
@@ -126,5 +136,20 @@ if __name__ == "__main__":
     )
 
     predictions = model.predict(data_dir="./.tmp/prediction_data", max_examples_per_class=5, class_limit=3)
-    print("MODEL", model.artifact.object)
-    print("PREDICTIONS", predictions)
+    class_names = get_quickdraw_class_names()
+
+    def predict(img):
+        x = torch.tensor(img, dtype=torch.float32).unsqueeze(0).unsqueeze(0) / 255.
+        with torch.no_grad():
+            out = model.artifact.object(x)
+        probabilities = nn.functional.softmax(out[0], dim=0)
+        values, indices = torch.topk(probabilities, num_classes)
+        confidences = {class_names[i]: v.item() for i, v in zip(indices, values)}
+        return confidences
+
+    gr.Interface(
+        fn=predict,
+        inputs="sketchpad",
+        outputs="label",
+        live=True,
+    ).launch(share=True)

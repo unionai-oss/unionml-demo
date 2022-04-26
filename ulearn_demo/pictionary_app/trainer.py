@@ -43,35 +43,20 @@ def quickdraw_compute_metrics(p: EvalPrediction):
 
 def init_model(num_classes: int):
     return nn.Sequential(
-        nn.Conv2d(1, 32, 3, padding='same'),
-        nn.ReLU(),
-        nn.MaxPool2d(2),
-        nn.Conv2d(32, 64, 3, padding='same'),
+        nn.Conv2d(1, 64, 3, padding='same'),
         nn.ReLU(),
         nn.MaxPool2d(2),
         nn.Conv2d(64, 128, 3, padding='same'),
         nn.ReLU(),
         nn.MaxPool2d(2),
-        nn.Flatten(),
-        nn.Linear(1152, 512),
+        nn.Conv2d(128, 256, 3, padding='same'),
         nn.ReLU(),
-        nn.Linear(512, num_classes),  # num_classes was limited to 100 here
+        nn.MaxPool2d(2),
+        nn.Flatten(),
+        nn.Linear(2304, 512),
+        nn.ReLU(),
+        nn.Linear(512, num_classes),
     )
-    # return nn.Sequential(
-    #     nn.Conv2d(1, 64, 3, padding='same'),
-    #     nn.ReLU(),
-    #     nn.MaxPool2d(2),
-    #     nn.Conv2d(64, 128, 3, padding='same'),
-    #     nn.ReLU(),
-    #     nn.MaxPool2d(2),
-    #     nn.Conv2d(128, 256, 3, padding='same'),
-    #     nn.ReLU(),
-    #     nn.MaxPool2d(2),
-    #     nn.Flatten(),
-    #     nn.Linear(2304, 512),
-    #     nn.ReLU(),
-    #     nn.Linear(512, num_classes),
-    # )
 
 
 if __name__ == "__main__":

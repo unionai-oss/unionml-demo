@@ -1,4 +1,6 @@
+from functools import lru_cache
 from typing import List, Optional
+
 import urllib.request
 from tqdm.auto import tqdm
 from pathlib import Path
@@ -6,10 +8,9 @@ import requests
 import torch
 import math
 import numpy as np
-import os
-import glob
 
 
+@lru_cache
 def get_quickdraw_class_names():
     """
     TODO - Check performance w/ gsutil in colab. The following command downloads all files to ./data

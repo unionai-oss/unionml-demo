@@ -1,7 +1,11 @@
+from datetime import datetime
+
 import torch
 from torch import nn
-from transformers import Trainer, EvalPrediction
+from transformers import EvalPrediction, Trainer, TrainingArguments
 from transformers.modeling_utils import ModelOutput
+
+from .dataset import quickdraw_collate_fn, QuickDrawDataset
 
 
 class QuickDrawTrainer(Trainer):
@@ -34,10 +38,7 @@ def quickdraw_compute_metrics(p: EvalPrediction):
         # but some reason the EvalPrediction.label_ids property will be empty on the last batch,
         # even with dataloader_drop_last set to True.
         return {}
-    acc1, acc5 = accuracy(
-        torch.tensor(p.predictions),
-        torch.tensor(p.label_ids), topk=(1, 5)
-    )
+    acc1, acc5 = accuracy(p.predictions, p.label_ids, topk=(1, 5))
     return {'acc1': acc1, 'acc5': acc5}
 
 
@@ -59,26 +60,10 @@ def init_model(num_classes: int):
     )
 
 
-if __name__ == "__main__":
-    import torch
-    from torch import nn
-    from transformers import TrainingArguments
-    from datetime import datetime
-    
-    from .dataset import QuickDrawDataset
-
-    data_dir = './data'
-    max_examples_per_class = 1000
-    train_val_split_pct = .5
-
-    ds = QuickDrawDataset(data_dir, max_examples_per_class, class_limit=5)
-    num_classes = len(ds.classes)
-    train_ds, val_ds = ds.split(train_val_split_pct)
-
+def quickdraw_trainer(module: nn.Module, dataset: QuickDrawDataset, num_epochs: int):
     timestamp = datetime.now().strftime('%Y-%m-%d-%H%M%S')
     training_args = TrainingArguments(
-        output_dir=f'./outputs_20k_{timestamp}',
-        evaluation_strategy='epoch',
+        output_dir=f'./.tmp/outputs_20k_{timestamp}',
         save_strategy='epoch',
         report_to=['tensorboard'],  # Update to just tensorboard if not using wandb
         logging_strategy='steps',
@@ -88,32 +73,22 @@ if __name__ == "__main__":
         learning_rate=0.003,
         fp16=torch.cuda.is_available(),
         dataloader_drop_last=True,
-        num_train_epochs=20,
+        num_train_epochs=num_epochs,
         run_name=f"quickdraw-med-{timestamp}",  # Can remove if not using wandb
         warmup_steps=10000,
         save_total_limit=5,
     )
-
-    model = init_model(num_classes=num_classes)
-
-    trainer = QuickDrawTrainer(
-        model,
+    quickdraw_trainer = QuickDrawTrainer(
+        module,
         training_args,
-        data_collator=ds.collate_fn,
-        train_dataset=train_ds,
-        eval_dataset=val_ds,
+        data_collator=quickdraw_collate_fn,
+        train_dataset=dataset,
         tokenizer=None,
         compute_metrics=quickdraw_compute_metrics,
     )
-
-    # Training
-    train_results = trainer.train()
-    trainer.save_model()
-    trainer.log_metrics("train", train_results.metrics)
-    trainer.save_metrics("train", train_results.metrics)
-    trainer.save_state()
-
-    # Evaluation
-    eval_results = trainer.evaluate()
-    trainer.log_metrics("eval", eval_results)
-    trainer.save_metrics("eval", eval_results)
+    train_results = quickdraw_trainer.train()
+    quickdraw_trainer.save_model()
+    quickdraw_trainer.log_metrics("train", train_results.metrics)
+    quickdraw_trainer.save_metrics("train", train_results.metrics)
+    quickdraw_trainer.save_state()
+    return module

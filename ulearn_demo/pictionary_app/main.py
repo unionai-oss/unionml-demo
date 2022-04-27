@@ -59,24 +59,3 @@ def predictor(module: nn.Module, features: torch.Tensor) -> torch.Tensor:
     class_names = get_quickdraw_class_names()
     values, indices = torch.topk(probabilities, 3)
     return {class_names[i]: v.item() for i, v in zip(indices, values)}
-
-
-if __name__ == "__main__":
-    import gradio as gr
-
-    num_classes = 3
-    trained_model, metrics = model.train(
-        hyperparameters={"num_classes": num_classes},
-        trainer_kwargs={"num_epochs": 1},
-        data_dir="./.tmp/data",
-        max_examples_per_class=1000,
-        class_limit=num_classes,
-    )
-
-    gr.Interface(
-        fn=model.predict,
-        inputs="sketchpad",
-        outputs="label",
-        live=True,
-        allow_flagging="never",
-    ).launch(share=True)

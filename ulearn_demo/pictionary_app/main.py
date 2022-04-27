@@ -8,10 +8,12 @@ import torch.nn as nn
 
 from transformers import TrainingArguments, EvalPrediction
     
-from ulearn import Dataset, Model
+from unionml import Dataset, Model
 
 from .dataset import QuickDrawDataset, get_quickdraw_class_names, quickdraw_collate_fn
 from .trainer import QuickDrawTrainer, init_model, quickdraw_compute_metrics
+
+QuickDrawDatasetType = Union[QuickDrawDataset, torch.utils.data.Subset]
 
 
 dataset = Dataset(name="quickdraw_dataset", test_size=0.2, shuffle=True)
@@ -22,7 +24,7 @@ model.remote(
     registry="ghcr.io/unionai-oss",
     dockerfile="Dockerfile",
     config_file_path="config/config-remote.yaml",
-    project="ulearn",
+    project="unionml",
     domain="development",
 )
 
@@ -30,11 +32,6 @@ model.remote(
 @dataset.reader
 def reader(data_dir: str, max_examples_per_class: int = 1000, class_limit: int = 5) -> QuickDrawDataset:
     return QuickDrawDataset(data_dir, max_examples_per_class, class_limit=class_limit)
-
-# TODO: consider a loader function in the case that flyte doesn't know how to effectively deserialize a dataset
-# automatically via types
-
-QuickDrawDatasetType = Union[QuickDrawDataset, torch.utils.data.Subset]
 
 
 @dataset.splitter

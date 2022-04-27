@@ -57,7 +57,8 @@ def predictor(module: nn.Module, features: torch.Tensor) -> torch.Tensor:
     with torch.no_grad():
         probabilities = nn.functional.softmax(module(features)[0], dim=0)
     class_names = get_quickdraw_class_names()
-    return {class_names[i]: v.item() for i, v in zip(torch.topk(probabilities, num_classes))}
+    values, indices = torch.topk(probabilities, 3)
+    return {class_names[i]: v.item() for i, v in zip(indices, values)}
 
 
 if __name__ == "__main__":

@@ -53,7 +53,7 @@ def evaluator(module: nn.Module, dataset: torch.utils.data.Subset) -> float:
 
 
 @model.predictor(cache=True, cache_version="1.0")
-def predictor(module: nn.Module, features: torch.Tensor) -> torch.Tensor:
+def predictor(module: nn.Module, features: torch.Tensor) -> dict:
     with torch.no_grad():
         probabilities = nn.functional.softmax(module(features)[0], dim=0)
     class_names = get_quickdraw_class_names()

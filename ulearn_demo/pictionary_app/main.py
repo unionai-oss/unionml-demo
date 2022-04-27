@@ -8,7 +8,7 @@ from transformers import  EvalPrediction
     
 from unionml import Dataset, Model
 
-from .dataset import QuickDrawDataset, get_quickdraw_class_names, quickdraw_collate_fn
+from .dataset import QuickDrawDataset, get_quickdraw_class_names
 from .trainer import init_model, quickdraw_compute_metrics, quickdraw_trainer
 
 QuickDrawDatasetType = Union[QuickDrawDataset, torch.utils.data.Subset]

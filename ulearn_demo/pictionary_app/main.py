@@ -27,7 +27,7 @@ model.remote(
 )
 
 
-@dataset.reader(cache=True, cache_version="1")
+@dataset.reader(cache=True, cache_version="1.0")
 def reader(data_dir: str, max_examples_per_class: int = 1000, class_limit: int = 5) -> QuickDrawDataset:
     return QuickDrawDataset(data_dir, max_examples_per_class, class_limit=class_limit)
 
@@ -39,7 +39,7 @@ def feature_loader(data: Union[QuickDrawDatasetType, np.ndarray]) -> torch.Tenso
     return torch.stack([data[i][0] for i in range(len(data))])
 
 
-@model.trainer(cache=True, cache_version="1")
+@model.trainer(cache=True, cache_version="1.0")
 def trainer(module: nn.Module, dataset: torch.utils.data.Subset, *, num_epochs: int = 20) -> nn.Module:
     return quickdraw_trainer(module, dataset, num_epochs)
 
@@ -52,7 +52,7 @@ def evaluator(module: nn.Module, dataset: torch.utils.data.Subset) -> float:
     return float(sum(top1_acc) / len(top1_acc))
 
 
-@model.predictor(cache=True, cache_version="1")
+@model.predictor(cache=True, cache_version="1.0")
 def predictor(module: nn.Module, features: torch.Tensor) -> torch.Tensor:
     with torch.no_grad():
         probabilities = nn.functional.softmax(module(features)[0], dim=0)

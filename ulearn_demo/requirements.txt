@@ -1,4 +1,4 @@
-git+https://github.com/unionai-oss/unionml@b3afce44585cf685c9086659187d6774e4146f0b
+git+https://github.com/unionai-oss/unionml@ddcb0c1e0043dd8f5a204459eff7c34256116a33
 gradio
 tensorboardX
 torch

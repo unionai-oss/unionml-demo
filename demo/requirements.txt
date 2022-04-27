@@ -1,0 +1,6 @@
+git+https://github.com/unionai-oss/unionml@main
+gradio
+tensorboardX
+torch
+tqdm
+transformers

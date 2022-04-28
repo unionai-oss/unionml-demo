@@ -20,7 +20,7 @@ def prepare_map_inputs(model_object: torch.nn.Module, feature_list: List[torch.T
 
 @task
 def mappable_task(input: MapItem) -> dict:
-    features = torch.tensor(inputs.features, dtype=torch.float32).unsqueeze(0).unsqueeze(0) / 255.
+    features = torch.tensor(input.features, dtype=torch.float32).unsqueeze(0).unsqueeze(0) / 255.
     return predictor(input.model_object, features)
 
 

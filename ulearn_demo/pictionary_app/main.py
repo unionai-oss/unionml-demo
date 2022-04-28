@@ -26,8 +26,8 @@ model.remote(
 )
 
 # define compute resource requirements
-reader_resources = Resources(cpu="50", mem="32Gi")
-trainer_resources = Resources(cpu="50", mem="32Gi")
+reader_resources = Resources(cpu="1", mem="6Gi")
+trainer_resources = Resources(cpu="1", mem="6Gi")
 
 
 @dataset.reader(cache=True, cache_version="1.0", requests=reader_resources, limits=reader_resources)

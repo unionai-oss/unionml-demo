@@ -40,7 +40,7 @@ def download_quickdraw_dataset(max_items_per_class: int, num_classes: int) -> Qu
 
 
 @task
-def generate_input(n_entries: int, dataset: QuickDrawDataset, class_names: List[str], max_items_per_class: int, num_classes: int) -> (List[torch.Tensor], List[str]):
+def generate_input(n_entries: int, dataset: QuickDrawDataset, class_names: List[str]) -> (List[torch.Tensor], List[str]):
    feature_list = []
    label_list = []
    # Grab a few random entries from the original dataset

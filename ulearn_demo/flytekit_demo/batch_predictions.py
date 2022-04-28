@@ -17,9 +17,10 @@ def predict_from_features_task(model_object: torch.nn.Module, features: QuickDra
     ...
 
 
-class MapItem(NamedTuple):
-   model_object: torch.nn.Module
-   features: torch.Tensor
+class MapItem:
+   def __init__(self, model_object: torch.nn.Module, features: torch.Tensor):
+       self.model_object = model_object
+       self.features = features
 
 
 @task
@@ -33,7 +34,7 @@ def mappable_task(input: MapItem) -> dict:
 
 
 @task
-def run_batch_predictions(map_input: MapItem) -> List[dict]:
+def run_batch_predictions(map_input: List[MapItem]) -> List[dict]:
     return map_task(mappable_task)(input=map_input)
 
 

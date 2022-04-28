@@ -5,13 +5,12 @@ import torch
 import torch.nn as nn
 
 from transformers import  EvalPrediction
-    
+
+from flytekit import Resources    
 from unionml import Dataset, Model
 
 from .dataset import QuickDrawDataset, get_quickdraw_class_names
 from .trainer import init_model, quickdraw_compute_metrics, quickdraw_trainer
-
-QuickDrawDatasetType = Union[QuickDrawDataset, torch.utils.data.Subset]
 
 
 dataset = Dataset(name="quickdraw_dataset", test_size=0.2, shuffle=True)
@@ -26,26 +25,30 @@ model.remote(
     domain="development",
 )
 
+# define compute resource requirements
+reader_resources = Resources(cpu="16", mem="32Gi")
+trainer_resources = Resources(gpu="1", mem="32Gi")
 
-@dataset.reader(cache=True, cache_version="1.0")
+
+@dataset.reader(cache=True, cache_version="1.0", requests=reader_resources, limits=reader_resources)
 def reader(data_dir: str, max_examples_per_class: int = 1000, class_limit: int = 5) -> QuickDrawDataset:
     return QuickDrawDataset(data_dir, max_examples_per_class, class_limit=class_limit)
 
 
 @dataset.feature_loader
-def feature_loader(data: Union[QuickDrawDatasetType, np.ndarray]) -> torch.Tensor:
+def feature_loader(data: Union[QuickDrawDataset, np.ndarray]) -> torch.Tensor:
     if isinstance(data, np.ndarray):
         return torch.tensor(data, dtype=torch.float32).unsqueeze(0).unsqueeze(0) / 255.
     return torch.stack([data[i][0] for i in range(len(data))])
 
 
-@model.trainer(cache=True, cache_version="1.0")
+@model.trainer(cache=True, cache_version="1.0", requests=trainer_resources, limits=trainer_resources)
 def trainer(module: nn.Module, dataset: torch.utils.data.Subset, *, num_epochs: int = 20) -> nn.Module:
     return quickdraw_trainer(module, dataset, num_epochs)
 
 
 @model.evaluator
-def evaluator(module: nn.Module, dataset: torch.utils.data.Subset) -> float:
+def evaluator(module: nn.Module, dataset: QuickDrawDataset) -> float:
     top1_acc = []
     for features, label_ids in torch.utils.data.DataLoader(dataset, batch_size=256):
         top1_acc.append(quickdraw_compute_metrics(EvalPrediction(module(features), label_ids))["acc1"])

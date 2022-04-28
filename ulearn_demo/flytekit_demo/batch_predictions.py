@@ -1,7 +1,7 @@
 import torch
 import torch.nn
-from typing import List
-from flytekit import workflow, reference_task, dynamic
+from typing import List, NamedTuple
+from flytekit import workflow, map_task, reference_task, dynamic
 
 from pictionary_app.dataset import QuickDrawDataset
 from pictionary_app.main import model
@@ -17,12 +17,24 @@ def predict_from_features_task(model_object: torch.nn.Module, features: QuickDra
     ...
 
 
-@dynamic
-def run_batch_predictions(model_object: torch.nn.Module, feature_list: List[torch.Tensor]) -> List[dict]:
-    predictions = []
-    for features in feature_list:
-        predictions.append(predict_from_features_task(model_object=model_object, features=features))
-    return predictions
+class MapItem(NamedTuple):
+   model_object: torch.nn.Module
+   features: torch.Tensor
+
+
+@task
+def prepare_map_inputs(model_object: torch.nn.Module, feature_list: List[torch.Tensor]) -> List[MapItem]:
+    return [MapItem(model_object, features) for features in feature_list]
+
+
+@task
+def mappable_task(input: MapItem) -> dict:
+    return predict_from_features_task(model_object=input.model_object, features=input.features)
+
+
+@task
+def run_batch_predictions(map_input: MapItem) -> List[dict]:
+    return map_task(mappable_task)(input=map_input)
 
 
 @workflow
@@ -30,4 +42,5 @@ def wf(
     model_object: torch.nn.Module,
     feature_list: List[torch.Tensor],
 ) -> List[dict]:
-    return run_batch_predictions(model_object=model_object, feature_list=feature_list)
+    map_input = prepare_map_inputs(model_object=model_object, feature_list=feature_list)
+    return run_batch_predictions(map_input=map_input)

@@ -45,7 +45,7 @@ def generate_input(n_entries: int, dataset: QuickDrawDataset, class_names: List[
    label_list = []
    # Grab a few random entries from the original dataset
    for i in range(n_entries):
-      X, y = dataset[random.randint(0, max_items_per_class * num_classes)]
+      X, y = dataset[random.randint(0, len(dataset) - 1)]
       feature_list.append(X.squeeze())
       label_list.append(class_names[y])
    return feature_list, label_list

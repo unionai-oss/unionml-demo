@@ -4,7 +4,7 @@ from typing import List, NamedTuple
 from flytekit import workflow, map_task, reference_task, task
 
 from pictionary_app.dataset import QuickDrawDataset
-from pictionary_app.main import model, predictor, feature_loader
+from pictionary_app.main import model, predictor
 
 
 class MapItem:
@@ -20,7 +20,8 @@ def prepare_map_inputs(model_object: torch.nn.Module, feature_list: List[torch.T
 
 @task
 def mappable_task(input: MapItem) -> dict:
-    return predictor(input.model_object, feature_loader(input.features))
+    features = torch.tensor(inputs.features, dtype=torch.float32).unsqueeze(0).unsqueeze(0) / 255.
+    return predictor(input.model_object, features)
 
 
 @task

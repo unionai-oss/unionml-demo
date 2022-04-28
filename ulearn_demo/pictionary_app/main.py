@@ -19,7 +19,7 @@ model = Model(name="quickdraw_classifier", init=init_model, dataset=dataset)
 # attach remote backend to the model
 model.remote(
     registry="ghcr.io/unionai-oss",
-    dockerfile="Dockerfile",
+    dockerfile="Dockerfile.gpu",
     config_file_path="config/config-remote.yaml",
     project="unionml",
     domain="development",
@@ -27,7 +27,7 @@ model.remote(
 
 # define compute resource requirements
 reader_resources = Resources(cpu="1", mem="6Gi")
-trainer_resources = Resources(cpu="1", mem="6Gi")
+trainer_resources = Resources(cpu="1", mem="6Gi", gpu="1")
 
 
 @dataset.reader(cache=True, cache_version="1.0", requests=reader_resources, limits=reader_resources)

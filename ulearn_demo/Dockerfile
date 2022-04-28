@@ -1,4 +1,4 @@
-FROM pytorch/pytorch:1.11.0-cuda11.3-cudnn8-runtime
+FROM python:3.8-slim-buster
 
 WORKDIR /root
 ENV VENV /opt/venv

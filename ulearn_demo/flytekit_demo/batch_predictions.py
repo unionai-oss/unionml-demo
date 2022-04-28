@@ -1,7 +1,7 @@
 import torch
 import torch.nn
 from typing import List, NamedTuple
-from flytekit import workflow, map_task, reference_task, dynamic
+from flytekit import workflow, map_task, reference_task, task
 
 from pictionary_app.dataset import QuickDrawDataset
 from pictionary_app.main import model

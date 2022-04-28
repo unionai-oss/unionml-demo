@@ -42,7 +42,7 @@ def feature_loader(data: Union[QuickDrawDataset, np.ndarray]) -> torch.Tensor:
     return torch.stack([data[i][0] for i in range(len(data))])
 
 
-@model.trainer(cache=True, cache_version="1.0", requests=trainer_resources, limits=trainer_resources)
+@model.trainer(cache=True, cache_version="1.1", requests=trainer_resources, limits=trainer_resources)
 def trainer(module: nn.Module, dataset: torch.utils.data.Subset, *, num_epochs: int = 20) -> nn.Module:
     return quickdraw_trainer(module, dataset, num_epochs)
 

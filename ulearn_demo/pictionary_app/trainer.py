@@ -78,6 +78,9 @@ def quickdraw_trainer(module: nn.Module, dataset: QuickDrawDataset, num_epochs: 
         warmup_steps=10000,
         save_total_limit=5,
     )
+    
+    print(training_args.device)
+    
     quickdraw_trainer = QuickDrawTrainer(
         module,
         training_args,

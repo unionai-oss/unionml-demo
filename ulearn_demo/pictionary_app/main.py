@@ -27,7 +27,7 @@ model = Model(name="quickdraw_classifier", init=init_model, dataset=dataset)
 # define compute resource requirements
 
 reader_resources = Resources(cpu="1", mem="6Gi")
-trainer_resources = Resources(cpu="1", mem="6Gi", gpu="1")
+trainer_resources = Resources(cpu="1", mem="6Gi")
 
 # %% [markdown]
 # ### Dataset Reader
@@ -106,7 +106,7 @@ def predictor(module: nn.Module, features: torch.Tensor) -> dict:
 
 model.remote(
      registry="ghcr.io/unionai-oss",
-     dockerfile="Dockerfile.gpu",
+     dockerfile="Dockerfile",
      config_file_path="config/config-remote.yaml",
      project="unionml",
      domain="development",

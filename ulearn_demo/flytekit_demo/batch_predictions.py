@@ -15,12 +15,12 @@ class MapItem:
        self.features = features
 
 
-@task
+@task(cache=True, cache_version="v1")
 def prepare_map_inputs(model_object: torch.nn.Module, feature_list: List[torch.Tensor]) -> List[MapItem]:
     return [MapItem(model_object, features) for features in feature_list]
 
 
-@task
+@task(cache=True, cache_version="v1")
 def mappable_task(input: MapItem) -> dict:
     features = torch.tensor(input.features, dtype=torch.float32).unsqueeze(0).unsqueeze(0) / 255.
     return predictor(input.model_object, features)
@@ -39,7 +39,7 @@ def download_quickdraw_dataset(max_items_per_class: int, num_classes: int) -> Qu
    return QuickDrawDataset("/tmp/quickdraw_data", max_items_per_class=max_items_per_class, class_limit=num_classes)
 
 
-@task
+@task(cache=True, cache_version="v1")
 def generate_input(n_entries: int, dataset: QuickDrawDataset, class_names: List[str]) -> (List[torch.Tensor], List[str]):
    feature_list = []
    label_list = []

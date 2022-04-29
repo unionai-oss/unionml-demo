@@ -9,8 +9,8 @@ from transformers import  EvalPrediction
 from flytekit import Resources    
 from unionml import Dataset, Model
 
-from .dataset import QuickDrawDataset, get_quickdraw_class_names
-from .trainer import init_model, quickdraw_compute_metrics, quickdraw_trainer
+from pictionary_app.dataset import QuickDrawDataset, get_quickdraw_class_names
+from pictionary_app.trainer import init_model, quickdraw_compute_metrics, quickdraw_trainer
 
 
 dataset = Dataset(name="quickdraw_dataset", test_size=0.2, shuffle=True)
@@ -20,7 +20,7 @@ model = Model(name="quickdraw_classifier", init=init_model, dataset=dataset)
 model.remote(
     registry="ghcr.io/unionai-oss",
     dockerfile="Dockerfile.gpu",
-    config_file_path="config/config-remote.yaml",
+    #config_file_path="config/config-remote.yaml",
     project="unionml",
     domain="development",
 )
@@ -51,6 +51,8 @@ def trainer(module: nn.Module, dataset: torch.utils.data.Subset, *, num_epochs: 
 def evaluator(module: nn.Module, dataset: QuickDrawDataset) -> float:
     top1_acc = []
     for features, label_ids in torch.utils.data.DataLoader(dataset, batch_size=256):
+        features.to(features.device)
+        label_ids.to(label_ids.device)
         top1_acc.append(quickdraw_compute_metrics(EvalPrediction(module(features), label_ids))["acc1"])
     return float(sum(top1_acc) / len(top1_acc))
 
@@ -62,3 +64,14 @@ def predictor(module: nn.Module, features: torch.Tensor) -> dict:
     class_names = get_quickdraw_class_names()
     values, indices = torch.topk(probabilities, 3)
     return {class_names[i]: v.item() for i, v in zip(indices, values)}
+
+
+if __name__ == "__main__":
+    num_classes = 2
+    model.train(
+        hyperparameters={"num_classes": num_classes},
+        trainer_kwargs={"num_epochs": 1},
+        data_dir="./data",
+        max_examples_per_class=10000,
+        class_limit=num_classes,
+    )

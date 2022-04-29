@@ -5,13 +5,17 @@ import numpy as np
 import torch
 import torch.nn as nn
 
-from transformers import  EvalPrediction
+from transformers import EvalPrediction
 
-from flytekit import Resources    
+from flytekit import Resources
 from unionml import Dataset, Model
 
 from pictionary_app.dataset import QuickDrawDataset, get_quickdraw_class_names
-from pictionary_app.trainer import init_model, quickdraw_compute_metrics, quickdraw_trainer
+from pictionary_app.trainer import (
+    init_model,
+    quickdraw_compute_metrics,
+    quickdraw_trainer,
+)
 
 
 # %% [markdown]
@@ -35,8 +39,12 @@ trainer_resources = Resources(cpu="1", mem="6Gi")
 # This method reads data into the trainer running on Flyte and also defines how to split it into training and test sets.
 
 # %%
-@dataset.reader(cache=True, cache_version="1.0", requests=reader_resources, limits=reader_resources)
-def reader(data_dir: str, max_examples_per_class: int = 1000, class_limit: int = 5) -> QuickDrawDataset:
+@dataset.reader(
+    cache=True, cache_version="1.2", requests=reader_resources, limits=reader_resources
+)
+def reader(
+    data_dir: str, max_examples_per_class: int = 1000, class_limit: int = 5
+) -> QuickDrawDataset:
     return QuickDrawDataset(data_dir, max_examples_per_class, class_limit=class_limit)
 
 
@@ -48,7 +56,7 @@ def reader(data_dir: str, max_examples_per_class: int = 1000, class_limit: int =
 @dataset.feature_loader
 def feature_loader(data: Union[QuickDrawDataset, np.ndarray]) -> torch.Tensor:
     if isinstance(data, np.ndarray):
-        return torch.tensor(data, dtype=torch.float32).unsqueeze(0).unsqueeze(0) / 255.
+        return torch.tensor(data, dtype=torch.float32).unsqueeze(0).unsqueeze(0) / 255.0
     return torch.stack([data[i][0] for i in range(len(data))])
 
 
@@ -57,8 +65,15 @@ def feature_loader(data: Union[QuickDrawDataset, np.ndarray]) -> torch.Tensor:
 # Specify how to train your model on Flyte.
 
 # %%
-@model.trainer(cache=True, cache_version="1.0", requests=trainer_resources, limits=trainer_resources)
-def trainer(module: nn.Module, dataset: torch.utils.data.Subset, *, num_epochs: int = 20) -> nn.Module:
+@model.trainer(
+    cache=True,
+    cache_version="1.2",
+    requests=trainer_resources,
+    limits=trainer_resources,
+)
+def trainer(
+    module: nn.Module, dataset: torch.utils.data.Subset, *, num_epochs: int = 20
+) -> nn.Module:
     return quickdraw_trainer(module, dataset, num_epochs)
 
 
@@ -74,7 +89,11 @@ def evaluator(module: nn.Module, dataset: QuickDrawDataset) -> float:
         if torch.cuda.is_available():
             features = features.to("cuda")
             label_ids = label_ids.to("cuda")
-        top1_acc.append(quickdraw_compute_metrics(EvalPrediction(module(features), label_ids))["acc1"])
+        top1_acc.append(
+            quickdraw_compute_metrics(EvalPrediction(module(features), label_ids))[
+                "acc1"
+            ]
+        )
     return float(sum(top1_acc) / len(top1_acc))
 
 
@@ -85,7 +104,7 @@ def evaluator(module: nn.Module, dataset: QuickDrawDataset) -> float:
 #
 
 # %%
-@model.predictor(cache=True, cache_version="1.0")
+@model.predictor(cache=True, cache_version="1.2")
 def predictor(module: nn.Module, features: torch.Tensor) -> dict:
     with torch.no_grad():
         probabilities = nn.functional.softmax(module(features)[0], dim=0)
@@ -105,11 +124,11 @@ def predictor(module: nn.Module, features: torch.Tensor) -> dict:
 # multuple users
 
 model.remote(
-     registry="ghcr.io/unionai-oss",
-     dockerfile="Dockerfile",
-     config_file_path="config/config-remote.yaml",
-     project="unionml",
-     domain="development",
+    registry="ghcr.io/unionai-oss",
+    dockerfile="Dockerfile",
+    config_file_path="config/config-remote.yaml",
+    project="unionml",
+    domain="development",
 )
 
 # %% [markdown]

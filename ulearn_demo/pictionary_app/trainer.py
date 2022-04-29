@@ -42,7 +42,7 @@ def quickdraw_compute_metrics(p: EvalPrediction):
     return {'acc1': acc1, 'acc5': acc5}
 
 
-def init_model(num_classes: int):
+def init_model(num_classes: int) -> nn.Module:
     return nn.Sequential(
         nn.Conv2d(1, 64, 3, padding='same'),
         nn.ReLU(),

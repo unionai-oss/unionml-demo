@@ -1,9 +1,5 @@
-# %% [markdown]
-# # Challenge: Lets train a QuickDraw model & Deploy it as an online service
-# In the following App we will create a [QuickDraw](https://quickdraw.withgoogle.com/) predictor App. The Dataset is available from [GCS](https://quickdraw.withgoogle.com/data) and contains more than **50 million** labeled drawings. Deep-Learning is a fantastic modeling technique to apply to a visual dataset like this. 
-
-# %%
-from typing import Union
+ # %%
+ from typing import Union
 
 import numpy as np
 import torch

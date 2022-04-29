@@ -30,11 +30,15 @@ reader_resources = Resources(cpu="1", mem="6Gi")
 trainer_resources = Resources(cpu="1", mem="6Gi", gpu="1")
 
 
+# %%
+# This method reads data into the trainer running on Flyte and also defines how to split it into training and test sets.
 @dataset.reader(cache=True, cache_version="1.0", requests=reader_resources, limits=reader_resources)
 def reader(data_dir: str, max_examples_per_class: int = 1000, class_limit: int = 5) -> QuickDrawDataset:
     return QuickDrawDataset(data_dir, max_examples_per_class, class_limit=class_limit)
 
 
+# %%
+# Defines how to parse out features from the dataset we produced above.
 @dataset.feature_loader
 def feature_loader(data: Union[QuickDrawDataset, np.ndarray]) -> torch.Tensor:
     if isinstance(data, np.ndarray):
@@ -42,11 +46,15 @@ def feature_loader(data: Union[QuickDrawDataset, np.ndarray]) -> torch.Tensor:
     return torch.stack([data[i][0] for i in range(len(data))])
 
 
+# %%
+# Specify how to train your model on Flyte.
 @model.trainer(cache=True, cache_version="1.1", requests=trainer_resources, limits=trainer_resources)
 def trainer(module: nn.Module, dataset: torch.utils.data.Subset, *, num_epochs: int = 20) -> nn.Module:
     return quickdraw_trainer(module, dataset, num_epochs)
 
 
+# %%
+# Evaluates the performance of the model.
 @model.evaluator
 def evaluator(module: nn.Module, dataset: QuickDrawDataset) -> float:
     top1_acc = []
@@ -58,6 +66,8 @@ def evaluator(module: nn.Module, dataset: QuickDrawDataset) -> float:
     return float(sum(top1_acc) / len(top1_acc))
 
 
+# %%
+# Runs the trained model on input to generates label predictions.
 @model.predictor(cache=True, cache_version="1.0")
 def predictor(module: nn.Module, features: torch.Tensor) -> dict:
     with torch.no_grad():

@@ -1,5 +1,5 @@
- # %%
- from typing import Union
+# %%
+from typing import Union
 
 import numpy as np
 import torch
@@ -11,7 +11,7 @@ from flytekit import Resources
 from unionml import Dataset, Model
 
 from pictionary_app.dataset import QuickDrawDataset, get_quickdraw_class_names
-from pictionary_app.trainer import init_model, quickdraw_compute_metrics, quickdraw_trainer"
+from pictionary_app.trainer import init_model, quickdraw_compute_metrics, quickdraw_trainer
 
 
 # %% [markdown]
@@ -19,12 +19,15 @@ from pictionary_app.trainer import init_model, quickdraw_compute_metrics, quickd
 # the UnionML App consists of 2 major components,
 # 1. **Model**: Model is essential the enclosure that contains the training program and the resultant trained model. Model can be anything that can be run using the ``train`` method and can be saved and re-hydrated.
 # 2. **Dataset** Dataset is the actual data that will be used to train. Dataset can be image data or structured data. For fun, we will use the doodle dataset here
-# dataset = Dataset(name="quickdraw_dataset", test_size=0.2, shuffle=True)
-# model = Model(name="quickdraw_classifier", init=init_model, dataset=dataset)
-#
+
+dataset = Dataset(name="quickdraw_dataset", test_size=0.2, shuffle=True)
+model = Model(name="quickdraw_classifier", init=init_model, dataset=dataset)
+
+# %% [markdown]
 # define compute resource requirements
-# reader_resources = Resources(cpu="1", mem="6Gi")
-# trainer_resources = Resources(cpu="1", mem="6Gi", gpu="1")
+
+reader_resources = Resources(cpu="1", mem="6Gi")
+trainer_resources = Resources(cpu="1", mem="6Gi", gpu="1")
 
 # %% [markdown]
 # ### Dataset Reader
@@ -100,15 +103,14 @@ def predictor(module: nn.Module, features: torch.Tensor) -> dict:
 # docker image for you, using a Dockerfile that you provide. **project** and
 # **domain** are Flyte concepts brought into UnionML to simplify management of
 # multuple users
-# model.remote(
-#     registry="ghcr.io/unionai-oss",
-#     dockerfile="Dockerfile.gpu",
-#     config_file_path="config/config-remote.yaml",
-#     project="unionml",
-#     domain="development",
-# )
-#
-#
+
+model.remote(
+     registry="ghcr.io/unionai-oss",
+     dockerfile="Dockerfile.gpu",
+     config_file_path="config/config-remote.yaml",
+     project="unionml",
+     domain="development",
+)
 
 # %% [markdown]
 # ### If you want to invoke this as a script

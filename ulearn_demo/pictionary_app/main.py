@@ -51,8 +51,9 @@ def trainer(module: nn.Module, dataset: torch.utils.data.Subset, *, num_epochs: 
 def evaluator(module: nn.Module, dataset: QuickDrawDataset) -> float:
     top1_acc = []
     for features, label_ids in torch.utils.data.DataLoader(dataset, batch_size=256):
-        features.to(features.device)
-        label_ids.to(label_ids.device)
+        if torch.cuda.is_available():
+            features = features.to("cuda")
+            label_ids = label_ids.to("cuda")
         top1_acc.append(quickdraw_compute_metrics(EvalPrediction(module(features), label_ids))["acc1"])
     return float(sum(top1_acc) / len(top1_acc))
 

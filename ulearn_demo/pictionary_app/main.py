@@ -1,3 +1,8 @@
+# %% [markdown]
+# # Challenge: Lets train a QuickDraw model & Deploy it as an online service
+# In the following App we will create a [QuickDraw](https://quickdraw.withgoogle.com/) predictor App. The Dataset is available from [GCS](https://quickdraw.withgoogle.com/data) and contains more than **50 million** labeled drawings. Deep-Learning is a fantastic modeling technique to apply to a visual dataset like this. 
+
+# %%
 from typing import Union
 
 import numpy as np
@@ -10,35 +15,37 @@ from flytekit import Resources
 from unionml import Dataset, Model
 
 from pictionary_app.dataset import QuickDrawDataset, get_quickdraw_class_names
-from pictionary_app.trainer import init_model, quickdraw_compute_metrics, quickdraw_trainer
+from pictionary_app.trainer import init_model, quickdraw_compute_metrics, quickdraw_trainer"
 
 
-dataset = Dataset(name="quickdraw_dataset", test_size=0.2, shuffle=True)
-model = Model(name="quickdraw_classifier", init=init_model, dataset=dataset)
-
-# attach remote backend to the model
-model.remote(
-    registry="ghcr.io/unionai-oss",
-    dockerfile="Dockerfile.gpu",
-    #config_file_path="config/config-remote.yaml",
-    project="unionml",
-    domain="development",
-)
-
+# %% [markdown]
+# ## Mechnaincs of the UnionML app
+# the UnionML App consists of 2 major components,
+# 1. **Model**: Model is essential the enclosure that contains the training program and the resultant trained model. Model can be anything that can be run using the ``train`` method and can be saved and re-hydrated.
+# 2. **Dataset** Dataset is the actual data that will be used to train. Dataset can be image data or structured data. For fun, we will use the doodle dataset here
+# dataset = Dataset(name="quickdraw_dataset", test_size=0.2, shuffle=True)
+# model = Model(name="quickdraw_classifier", init=init_model, dataset=dataset)
+#
 # define compute resource requirements
-reader_resources = Resources(cpu="1", mem="6Gi")
-trainer_resources = Resources(cpu="1", mem="6Gi", gpu="1")
+# reader_resources = Resources(cpu="1", mem="6Gi")
+# trainer_resources = Resources(cpu="1", mem="6Gi", gpu="1")
 
+# %% [markdown]
+# ### Dataset Reader
+#
+# This method reads data into the trainer running on Flyte and also defines how to split it into training and test sets.
 
 # %%
-# This method reads data into the trainer running on Flyte and also defines how to split it into training and test sets.
 @dataset.reader(cache=True, cache_version="1.0", requests=reader_resources, limits=reader_resources)
 def reader(data_dir: str, max_examples_per_class: int = 1000, class_limit: int = 5) -> QuickDrawDataset:
     return QuickDrawDataset(data_dir, max_examples_per_class, class_limit=class_limit)
 
 
-# %%
+# %% [markdown]
+# ### optionally define how features are parsed
 # Defines how to parse out features from the dataset we produced above.
+
+# %%
 @dataset.feature_loader
 def feature_loader(data: Union[QuickDrawDataset, np.ndarray]) -> torch.Tensor:
     if isinstance(data, np.ndarray):
@@ -46,15 +53,21 @@ def feature_loader(data: Union[QuickDrawDataset, np.ndarray]) -> torch.Tensor:
     return torch.stack([data[i][0] for i in range(len(data))])
 
 
-# %%
+# %% [markdown]
+# ### Train the Model
 # Specify how to train your model on Flyte.
+
+# %%
 @model.trainer(cache=True, cache_version="1.1", requests=trainer_resources, limits=trainer_resources)
 def trainer(module: nn.Module, dataset: torch.utils.data.Subset, *, num_epochs: int = 20) -> nn.Module:
     return quickdraw_trainer(module, dataset, num_epochs)
 
 
+# %% [markdown]
+# ### Evaluation criteria
+# To train a model correctly, provide the evaluation criteria. This may be invoked per epoch
+
 # %%
-# Evaluates the performance of the model.
 @model.evaluator
 def evaluator(module: nn.Module, dataset: QuickDrawDataset) -> float:
     top1_acc = []
@@ -66,8 +79,13 @@ def evaluator(module: nn.Module, dataset: QuickDrawDataset) -> float:
     return float(sum(top1_acc) / len(top1_acc))
 
 
+# %% [markdown]
+# ### Now lets predict using the trained model.
+#
+# Once the model is trained we want to compute metrics on how we did. Also once the model is deployed we may want to run predictions in the online server. This method can be invoked in multiple contexts and should do a singular function, **how to predict given the input feature.**
+#
+
 # %%
-# Runs the trained model on input to generates label predictions.
 @model.predictor(cache=True, cache_version="1.0")
 def predictor(module: nn.Module, features: torch.Tensor) -> dict:
     with torch.no_grad():
@@ -77,6 +95,29 @@ def predictor(module: nn.Module, features: torch.Tensor) -> dict:
     return {class_names[i]: v.item() for i, v in zip(indices, values)}
 
 
+# %% [markdown]
+#  ## Scaling!
+# One reason why you want to use UnionML is if you want to scale your training
+# to a large cluster without any heavy lifting. UnionML is built on top of
+# Flyte. The remote works using ``container`` images. Thus you can configure
+# how the model should be stored, UnionML will also automatically build the
+# docker image for you, using a Dockerfile that you provide. **project** and
+# **domain** are Flyte concepts brought into UnionML to simplify management of
+# multuple users
+# model.remote(
+#     registry="ghcr.io/unionai-oss",
+#     dockerfile="Dockerfile.gpu",
+#     config_file_path="config/config-remote.yaml",
+#     project="unionml",
+#     domain="development",
+# )
+#
+#
+
+# %% [markdown]
+# ### If you want to invoke this as a script
+
+# %%
 if __name__ == "__main__":
     num_classes = 2
     model.train(

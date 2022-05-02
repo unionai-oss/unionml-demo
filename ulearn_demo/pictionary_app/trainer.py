@@ -42,7 +42,7 @@ def quickdraw_compute_metrics(p: EvalPrediction):
     return {'acc1': acc1, 'acc5': acc5}
 
 
-def init_model(num_classes: int):
+def init_model(num_classes: int) -> nn.Module:
     return nn.Sequential(
         nn.Conv2d(1, 64, 3, padding='same'),
         nn.ReLU(),
@@ -78,6 +78,9 @@ def quickdraw_trainer(module: nn.Module, dataset: QuickDrawDataset, num_epochs: 
         warmup_steps=10000,
         save_total_limit=5,
     )
+    
+    print(training_args.device)
+    
     quickdraw_trainer = QuickDrawTrainer(
         module,
         training_args,

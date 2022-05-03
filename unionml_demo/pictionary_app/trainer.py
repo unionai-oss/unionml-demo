@@ -60,16 +60,16 @@ def init_model(num_classes: int) -> nn.Module:
     )
 
 
-def quickdraw_trainer(module: nn.Module, dataset: QuickDrawDataset, num_epochs: int):
+def quickdraw_trainer(module: nn.Module, dataset: QuickDrawDataset, num_epochs: int, batch_size: int):
     timestamp = datetime.now().strftime('%Y-%m-%d-%H%M%S')
     training_args = TrainingArguments(
         output_dir=f'./.tmp/outputs_20k_{timestamp}',
         save_strategy='epoch',
-        report_to=['tensorboard'],  # Update to just tensorboard if not using wandb
+        report_to=['wandb', 'tensorboard'],  # Update to just tensorboard if not using wandb
         logging_strategy='steps',
         logging_steps=100,
-        per_device_train_batch_size=256,
-        per_device_eval_batch_size=256,
+        per_device_train_batch_size=batch_size,
+        per_device_eval_batch_size=batch_size,
         learning_rate=0.003,
         fp16=torch.cuda.is_available(),
         dataloader_drop_last=True,
@@ -79,7 +79,7 @@ def quickdraw_trainer(module: nn.Module, dataset: QuickDrawDataset, num_epochs: 
         save_total_limit=5,
     )
     
-    print(training_args.device)
+    print(f"Training on device: {training_args.device}")
     
     quickdraw_trainer = QuickDrawTrainer(
         module,

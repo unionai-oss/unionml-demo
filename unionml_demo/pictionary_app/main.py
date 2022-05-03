@@ -83,9 +83,9 @@ def feature_loader(data: Union[QuickDrawDataset, np.ndarray]) -> torch.Tensor:
     limits=trainer_resources,
 )
 def trainer(
-    module: nn.Module, dataset: torch.utils.data.Subset, *, num_epochs: int = 20
+    module: nn.Module, dataset: torch.utils.data.Subset, *, num_epochs: int = 20, batch_size: int = 256
 ) -> nn.Module:
-    module = quickdraw_trainer(module, dataset, num_epochs)
+    module = quickdraw_trainer(module, dataset, num_epochs, batch_size)
     return module.cpu()  # convert model to cpu before serializing
 
 

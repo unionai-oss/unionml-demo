@@ -78,15 +78,14 @@ def feature_loader(data: Union[QuickDrawDataset, np.ndarray]) -> torch.Tensor:
 # %%
 @model.trainer(
     cache=True,
-    cache_version="1.2",
+    cache_version="1.4",
     requests=trainer_resources,
     limits=trainer_resources,
 )
 def trainer(
     module: nn.Module, dataset: torch.utils.data.Subset, *, num_epochs: int = 20, batch_size: int = 256
 ) -> nn.Module:
-    module = quickdraw_trainer(module, dataset, num_epochs, batch_size)
-    return module.cpu()  # convert model to cpu before serializing
+    return quickdraw_trainer(module, dataset, num_epochs, batch_size)
 
 
 # %% [markdown]
@@ -97,6 +96,7 @@ def trainer(
 # %%
 @model.evaluator
 def evaluator(module: nn.Module, dataset: QuickDrawDataset) -> float:
+    cuda = False
     if torch.cuda.is_available():
         cuda = True
         module = module.cuda()
@@ -109,6 +109,7 @@ def evaluator(module: nn.Module, dataset: QuickDrawDataset) -> float:
             EvalPrediction(module(features), label_ids)
         )
         acc.append(metrics["acc1"])
+    module.cpu()
     return float(sum(acc) / len(acc))
 
 
@@ -119,7 +120,7 @@ def evaluator(module: nn.Module, dataset: QuickDrawDataset) -> float:
 # how to generate predictions from a tensor of features.
 
 # %%
-@model.predictor(cache=True, cache_version="1.2")
+@model.predictor(cache=True, cache_version="1.3")
 def predictor(module: nn.Module, features: torch.Tensor) -> dict:
     module.eval()
     if torch.cuda.is_available():

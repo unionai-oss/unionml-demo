@@ -25,6 +25,6 @@ COPY ./requirements.txt /root
 RUN pip install -r /root/requirements.txt
 COPY . /root
 
-ENV WANDB_API_KEY=df188aead564bae07fd57f33aa99a9ddbbd35074
+ENV WANDB_API_KEY="0290ff7f1eb4990f3f9e5caec574fe59be180f3a"
 ENV WANDB_PROJECT="unionml_demo_pictionary_app"
 RUN pip install wandb

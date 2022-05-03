@@ -97,17 +97,19 @@ def trainer(
 # %%
 @model.evaluator
 def evaluator(module: nn.Module, dataset: QuickDrawDataset) -> float:
-    top1_acc = []
+    if torch.cuda.is_available():
+        cuda = True
+        module = module.cuda()
+
+    acc = []
     for features, label_ids in torch.utils.data.DataLoader(dataset, batch_size=256):
-        if torch.cuda.is_available():
-            features = features.to("cuda")
-            label_ids = label_ids.to("cuda")
-        top1_acc.append(
-            quickdraw_compute_metrics(EvalPrediction(module(features), label_ids))[
-                "acc1"
-            ]
+        if cuda:
+            features, label_ids = features.to("cuda"), label_ids.to("cuda")
+        metrics = quickdraw_compute_metrics(
+            EvalPrediction(module(features), label_ids)
         )
-    return float(sum(top1_acc) / len(top1_acc))
+        acc.append(metrics["acc1"])
+    return float(sum(acc) / len(acc))
 
 
 # %% [markdown]
@@ -119,6 +121,9 @@ def evaluator(module: nn.Module, dataset: QuickDrawDataset) -> float:
 # %%
 @model.predictor(cache=True, cache_version="1.2")
 def predictor(module: nn.Module, features: torch.Tensor) -> dict:
+    module.eval()
+    if torch.cuda.is_available():
+        module, features = module.cuda(), features.cuda()
     with torch.no_grad():
         probabilities = nn.functional.softmax(module(features)[0], dim=0)
     class_names = get_quickdraw_class_names()

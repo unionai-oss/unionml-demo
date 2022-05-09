@@ -35,8 +35,8 @@ model = Model(name="quickdraw_classifier", init=init_model, dataset=dataset)
 # %% [markdown]
 # Define compute resource requirements:
 
-reader_resources = Resources(cpu="1", mem="6Gi")
-trainer_resources = Resources(gpu="1", mem="6Gi")
+reader_resources = Resources(cpu="1", mem="12Gi")
+trainer_resources = Resources(gpu="1", mem="12Gi")
 
 # %% [markdown]
 # ## Reading Data
@@ -162,11 +162,11 @@ model.remote(
 
 # %%
 if __name__ == "__main__":
-    num_classes = 2
+    num_classes = 100
     model.train(
         hyperparameters={"num_classes": num_classes},
-        trainer_kwargs={"num_epochs": 1},
+        trainer_kwargs={"num_epochs": 3, "batch_size": 256},
         data_dir="./data",
-        max_examples_per_class=10000,
+        max_examples_per_class=1000,
         class_limit=num_classes,
     )

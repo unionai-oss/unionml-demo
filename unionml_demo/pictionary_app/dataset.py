@@ -18,7 +18,7 @@ def get_quickdraw_class_names():
     """
     url = "https://raw.githubusercontent.com/googlecreativelab/quickdraw-dataset/master/categories.txt"
     r = requests.get(url)
-    classes = [x.replace(' ', '_') for x in r.text.splitlines()]
+    classes = [*sorted(x.replace(' ', '_') for x in r.text.splitlines())]
     return classes
 
 

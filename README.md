@@ -3,6 +3,7 @@
 ## Environment Setup
 
 ```
+cd unionml_demo
 python -m venv ~/venvs/unionml-demo
 source ~/venvs/unionml-demo/bin/activate
 pip install -r requirements.txt -r requirements-demo.txt

@@ -23,3 +23,7 @@ ENV PATH="${VENV}/bin:$PATH"
 COPY ./requirements.txt /root
 RUN pip install -r /root/requirements.txt
 COPY . /root
+
+ENV WANDB_API_KEY="bb3911fee5ec2805704ae7542fe46ecb69dd0a24"
+ENV WANDB_PROJECT="unionml_demo_pictionary_app"
+RUN pip install wandb

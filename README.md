@@ -1,4 +1,4 @@
-# Pycon 2022 UnionML demo
+# UnionML demo
 
 ## Environment Setup
 

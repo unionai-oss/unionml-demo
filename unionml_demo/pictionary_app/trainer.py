@@ -5,7 +5,7 @@ from torch import nn
 from transformers import EvalPrediction, Trainer, TrainingArguments
 from transformers.modeling_utils import ModelOutput
 
-from .dataset import quickdraw_collate_fn, QuickDrawDataset
+from .dataset import QuickDrawDataset
 
 
 class QuickDrawTrainer(Trainer):
@@ -84,7 +84,7 @@ def quickdraw_trainer(module: nn.Module, dataset: QuickDrawDataset, num_epochs: 
     quickdraw_trainer = QuickDrawTrainer(
         module,
         training_args,
-        data_collator=quickdraw_collate_fn,
+        data_collator=dataset.collate_fn,
         train_dataset=dataset,
         tokenizer=None,
         compute_metrics=quickdraw_compute_metrics,

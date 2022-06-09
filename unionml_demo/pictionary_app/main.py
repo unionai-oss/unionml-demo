@@ -148,7 +148,7 @@ def predictor(module: nn.Module, features: torch.Tensor) -> dict:
 model.remote(
     registry="ghcr.io/unionai-oss",
     dockerfile="Dockerfile.gpu",
-    config_file_path="config/config-remote.yaml",
+    config_file="config/config-remote.yaml",
     project="unionml",
     domain="development",
 )
@@ -162,11 +162,12 @@ model.remote(
 
 # %%
 if __name__ == "__main__":
-    num_classes = 100
+    num_classes = 10
     model.train(
         hyperparameters={"num_classes": num_classes},
         trainer_kwargs={"num_epochs": 3, "batch_size": 256},
-        data_dir="./data",
+        data_dir="/tmp/quickdraw_data",
         max_examples_per_class=1000,
         class_limit=num_classes,
     )
+    print(model)

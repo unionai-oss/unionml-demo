@@ -65,7 +65,7 @@ def quickdraw_trainer(module: nn.Module, dataset: QuickDrawDataset, num_epochs: 
     training_args = TrainingArguments(
         output_dir=f'./.tmp/outputs_20k_{timestamp}',
         save_strategy='epoch',
-        report_to=['wandb', 'tensorboard'],  # Update to just tensorboard if not using wandb
+        report_to=['tensorboard'],  # Update to just tensorboard if not using wandb
         logging_strategy='steps',
         logging_steps=100,
         per_device_train_batch_size=batch_size,

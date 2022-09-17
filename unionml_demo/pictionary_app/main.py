@@ -46,7 +46,7 @@ trainer_resources = Resources(gpu="1", mem="12Gi")
 
 @dataset.reader(
     cache=True,
-    cache_version="1.2",
+    cache_version="1",
     requests=reader_resources,
     limits=reader_resources,
 )
@@ -78,7 +78,7 @@ def feature_loader(data: Union[QuickDrawDataset, np.ndarray]) -> torch.Tensor:
 # %%
 @model.trainer(
     cache=True,
-    cache_version="1.4",
+    cache_version="1",
     requests=trainer_resources,
     limits=trainer_resources,
 )
@@ -120,7 +120,7 @@ def evaluator(module: nn.Module, dataset: QuickDrawDataset) -> float:
 # how to generate predictions from a tensor of features.
 
 # %%
-@model.predictor(cache=True, cache_version="1.3")
+@model.predictor(cache=True, cache_version="1")
 def predictor(module: nn.Module, features: torch.Tensor) -> dict:
     module.eval()
     if torch.cuda.is_available():

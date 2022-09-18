@@ -149,7 +149,7 @@ model.remote(
     registry="ghcr.io/unionai-oss",
     dockerfile="Dockerfile.gpu",
     config_file="config/config-remote.yaml",
-    project="unionml",
+    project="unionml-demo",
     domain="development",
 )
 

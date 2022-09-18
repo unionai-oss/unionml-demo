@@ -83,7 +83,7 @@ def feature_loader(data: Union[QuickDrawDataset, np.ndarray]) -> torch.Tensor:
     limits=trainer_resources,
 )
 def trainer(
-    module: nn.Module, dataset: torch.utils.data.Subset, *, num_epochs: int = 20, batch_size: int = 256
+    module: nn.Module, dataset: QuickDrawDataset, *, num_epochs: int = 20, batch_size: int = 256
 ) -> nn.Module:
     return quickdraw_trainer(module, dataset, num_epochs, batch_size)
 

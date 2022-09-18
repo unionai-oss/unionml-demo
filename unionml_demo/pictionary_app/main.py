@@ -46,7 +46,7 @@ trainer_resources = Resources(gpu="1", mem="12Gi")
 
 @dataset.reader(
     cache=True,
-    cache_version="1",
+    cache_version="2",
     requests=reader_resources,
     limits=reader_resources,
 )

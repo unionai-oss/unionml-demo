@@ -1,4 +1,4 @@
-unionml
+git+https://www.github.com/unionai-oss/unionml@fix-type-guards
 gradio
 tensorboardX
 torch

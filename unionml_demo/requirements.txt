@@ -1,4 +1,5 @@
-git+https://www.github.com/unionai-oss/unionml@fix-type-guards
+git+https://www.github.com/unionai-oss/unionml@main
+flytekitplugins-onnxpytorch
 gradio
 plotly
 tensorboardX

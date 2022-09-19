@@ -8,6 +8,8 @@ import torch.nn as nn
 from transformers import EvalPrediction
 
 from flytekit import Deck, Resources
+from flytekit.types.file import ONNXFile
+from flytekitplugins.onnxpytorch import PyTorch2ONNX
 from unionml import Dataset, Model
 
 from pictionary_app.dataset import QuickDrawDataset, get_quickdraw_class_names
@@ -17,6 +19,7 @@ from pictionary_app.trainer import (
     quickdraw_compute_metrics,
     train_quickdraw,
 )
+from pictionary_app.types import PictionaryONNXModel
 
 
 # %% [markdown]
@@ -85,7 +88,7 @@ def feature_loader(data: Union[QuickDrawDataset, np.ndarray]) -> torch.Tensor:
 )
 def trainer(
     module: nn.Module, dataset: QuickDrawDataset, *, num_epochs: int = 20, batch_size: int = 256
-) -> nn.Module:
+) -> PictionaryONNXModel:
     quickdraw_trainer = train_quickdraw(module, dataset, num_epochs, batch_size)
     Deck("loss curve", LineChart(x="step", y="loss").to_html(quickdraw_trainer.state.log_history))
     return quickdraw_trainer.model

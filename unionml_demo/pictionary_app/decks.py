@@ -13,5 +13,5 @@ class LineChart:
 
     def to_html(self, data: List[Dict[str, Any]]) -> str:
         df = pd.DataFrame(data)
-        fig = px.line(df, x=self.x, y=self.x)
+        fig = px.line(df, x=self.x, y=self.y)
         return fig.to_html()

@@ -85,7 +85,7 @@ def feature_loader(data: Union[QuickDrawDataset, np.ndarray]) -> torch.Tensor:
 )
 def trainer(
     module: nn.Module, dataset: QuickDrawDataset, *, num_epochs: int = 20, batch_size: int = 256
-) -> PictionaryONNXModel:
+) -> nn.Module:
     quickdraw_trainer = train_quickdraw(module, dataset, num_epochs, batch_size)
     Deck("loss curve", LineChart(x="step", y="loss").to_html(quickdraw_trainer.state.log_history))
     return quickdraw_trainer.model

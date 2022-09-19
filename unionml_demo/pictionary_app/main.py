@@ -8,8 +8,6 @@ import torch.nn as nn
 from transformers import EvalPrediction
 
 from flytekit import Deck, Resources
-from flytekit.types.file import ONNXFile
-from flytekitplugins.onnxpytorch import PyTorch2ONNX
 from unionml import Dataset, Model
 
 from pictionary_app.dataset import QuickDrawDataset, get_quickdraw_class_names
@@ -19,7 +17,6 @@ from pictionary_app.trainer import (
     quickdraw_compute_metrics,
     train_quickdraw,
 )
-from pictionary_app.types import PictionaryONNXModel
 
 
 # %% [markdown]

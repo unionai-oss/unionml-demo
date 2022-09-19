@@ -7,14 +7,15 @@ import torch.nn as nn
 
 from transformers import EvalPrediction
 
-from flytekit import Resources
+from flytekit import Deck, Resources
 from unionml import Dataset, Model
 
 from pictionary_app.dataset import QuickDrawDataset, get_quickdraw_class_names
+from pictionary_app.decks import LineChart
 from pictionary_app.trainer import (
     init_model,
     quickdraw_compute_metrics,
-    quickdraw_trainer,
+    train_quickdraw,
 )
 
 
@@ -85,7 +86,9 @@ def feature_loader(data: Union[QuickDrawDataset, np.ndarray]) -> torch.Tensor:
 def trainer(
     module: nn.Module, dataset: QuickDrawDataset, *, num_epochs: int = 20, batch_size: int = 256
 ) -> nn.Module:
-    return quickdraw_trainer(module, dataset, num_epochs, batch_size)
+    quickdraw_trainer = train_quickdraw(module, dataset, num_epochs, batch_size)
+    Deck("loss curve", LineChart(x="step", y="loss").to_html(quickdraw_trainer.state.log_history))
+    return quickdraw_trainer.model
 
 
 # %% [markdown]
@@ -165,9 +168,9 @@ if __name__ == "__main__":
     num_classes = 10
     model.train(
         hyperparameters={"num_classes": num_classes},
-        trainer_kwargs={"num_epochs": 3, "batch_size": 256},
+        trainer_kwargs={"num_epochs": 3, "batch_size": 2048},
         data_dir="/tmp/quickdraw_data",
-        max_examples_per_class=1000,
+        max_examples_per_class=500,
         class_limit=num_classes,
     )
     print(model)

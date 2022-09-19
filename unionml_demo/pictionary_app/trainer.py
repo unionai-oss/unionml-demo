@@ -21,6 +21,7 @@ class QuickDrawTrainer(Trainer):
 
         return (loss, ModelOutput(logits=logits, loss=loss)) if return_outputs else loss
 
+
 # Taken from timm - https://github.com/rwightman/pytorch-image-models/blob/master/timm/utils/metrics.py
 def accuracy(output, target, topk=(1,)):
     """Computes the accuracy over the k top predictions for the specified values of k"""
@@ -60,14 +61,19 @@ def init_model(num_classes: int = 10) -> nn.Module:
     )
 
 
-def quickdraw_trainer(module: nn.Module, dataset: QuickDrawDataset, num_epochs: int, batch_size: int):
+def train_quickdraw(
+    module: nn.Module,
+    dataset: QuickDrawDataset,
+    num_epochs: int,
+    batch_size: int,
+) -> QuickDrawTrainer:
     timestamp = datetime.now().strftime('%Y-%m-%d-%H%M%S')
     training_args = TrainingArguments(
         output_dir=f'./.tmp/outputs_20k_{timestamp}',
         save_strategy='epoch',
         report_to=['tensorboard'],  # Update to just tensorboard if not using wandb
         logging_strategy='steps',
-        logging_steps=100,
+        logging_steps=1,
         per_device_train_batch_size=batch_size,
         per_device_eval_batch_size=batch_size,
         learning_rate=0.003,
@@ -89,9 +95,9 @@ def quickdraw_trainer(module: nn.Module, dataset: QuickDrawDataset, num_epochs: 
         tokenizer=None,
         compute_metrics=quickdraw_compute_metrics,
     )
-    train_results = quickdraw_trainer.train()
+    training_results = quickdraw_trainer.train()
     quickdraw_trainer.save_model()
-    quickdraw_trainer.log_metrics("train", train_results.metrics)
-    quickdraw_trainer.save_metrics("train", train_results.metrics)
+    quickdraw_trainer.log_metrics("train", training_results.metrics)
+    quickdraw_trainer.save_metrics("train", training_results.metrics)
     quickdraw_trainer.save_state()
-    return module
+    return quickdraw_trainer

@@ -1,5 +1,5 @@
 # %%
-from typing import Union
+from typing import List, Union
 
 import numpy as np
 import torch
@@ -63,8 +63,8 @@ def reader(
 
 # %%
 @dataset.feature_loader
-def feature_loader(data: Union[QuickDrawDataset, np.ndarray]) -> torch.Tensor:
-    if isinstance(data, np.ndarray):
+def feature_loader(data: Union[QuickDrawDataset, np.ndarray, List[List[float]]]) -> torch.Tensor:
+    if isinstance(data, (np.ndarray, list)):
         return torch.tensor(data, dtype=torch.float32).unsqueeze(0).unsqueeze(0) / 255.0
     return torch.stack([data[i][0] for i in range(len(data))])
 
@@ -131,7 +131,7 @@ def predictor(module: nn.Module, features: torch.Tensor) -> dict:
     with torch.no_grad():
         probabilities = nn.functional.softmax(module(features)[0], dim=0)
     class_names = get_quickdraw_class_names()
-    values, indices = torch.topk(probabilities, 3)
+    values, indices = torch.topk(probabilities, 10)
     return {class_names[i]: v.item() for i, v in zip(indices, values)}
 
 

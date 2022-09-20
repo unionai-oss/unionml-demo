@@ -1,6 +1,9 @@
 .ipynb_checkpoints
 .tmp
 wandb
+*.pt
+*.joblib
+*.pickle
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
